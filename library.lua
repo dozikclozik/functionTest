@@ -244,6 +244,18 @@ function DozikLibrary:CreateWindow(boolean)
 		ScrllForRemotes.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		ScrllForRemotes.CanvasSize = UDim2.new(0, 0,100, 0)
 		
+		local SearchRemotesBox = Instance.new("TextBox", Two_Frame)
+		SearchRemotesBox.Visible = false  							
+		SearchRemotesBox.Name = "SearchBoxRemote"					local SearchRemoteButton = Instance.new("ImageButton", SearchRemotesBox)
+		SearchRemotesBox.Text = ""									SearchRemoteButton.Image = "http://www.roblox.com/asset/?id=5492253050"
+		SearchRemotesBox.PlaceholderText = "Search"					SearchRemoteButton.BackgroundColor3 = Color3.new(0.901961, 0.733333, 0.0666667)
+		SearchRemotesBox.Font = Enum.Font.Nunito					SearchRemoteButton.BorderSizePixel = 0
+		SearchRemotesBox.BackgroundColor = BrickColor.new("White")	SearchRemoteButton.ImageColor3 = Color3.new(255,255,255)
+		SearchRemotesBox.BorderSizePixel = 1						SearchRemoteButton.Position = UDim2.new(1, 0, 0, 0)
+		SearchRemotesBox.TextScaled = true							SearchRemoteButton.Size = UDim2.new(0.243, 0, 1, 0)
+		SearchRemotesBox.Position = UDim2.new(0.548, 0, 0.29, 0)
+		SearchRemotesBox.Size = UDim2.new(0.317, 0, 0.161, 0)
+		
 		local UIListLayoutInfo = Instance.new("UIListLayout", ScrllForInfo)
 		UIListLayoutInfo.Padding = UDim.new(0, 10)
 		UIListLayoutInfo.SortOrder = Enum.SortOrder.LayoutOrder
@@ -273,14 +285,32 @@ function DozikLibrary:CreateWindow(boolean)
 		CreateInfoLabel(ScrllForInfo, "Your username: ", LocalPlayer.Name)
 		end
 		
-		local function FindAllRemotes()
+		local function FindAllRemotes(searchRequest)
+			for index, element in pairs(ScrllForRemotes:GetChildren()) do -- CLEARING
+				if not element:IsA("UIListLayout") then
+					element:Destroy()
+				end
+			end
+			
 			for i, remote in pairs(game:GetDescendants()) do
 				if remote:IsA("RemoteEvent") and not remote:FindFirstAncestor("DefaultChatSystemChatEvents") then
-					CreateRemoteLabel(ScrllForRemotes, "RemoteEvent", remote.Name, remote)
+					if searchRequest ~= nil and string.find(string.lower(remote.Name), string.lower(tostring(searchRequest))) then
+						CreateRemoteLabel(ScrllForRemotes, "RemoteEvent", remote.Name, remote)
+					elseif searchRequest == nil then
+						CreateRemoteLabel(ScrllForRemotes, "RemoteEvent", remote.Name, remote)
+					end
 				elseif remote:IsA("BindableEvent") and not remote:FindFirstAncestor("DefaultChatSystemChatEvents") then
-					CreateRemoteLabel(ScrllForRemotes, "BindableEvent", remote.Name, remote)
+					if searchRequest ~= nil and string.find(string.lower(remote.Name), string.lower(tostring(searchRequest))) then
+						CreateRemoteLabel(ScrllForRemotes, "BindableEvent", remote.Name, remote)
+					elseif searchRequest == nil then
+						CreateRemoteLabel(ScrllForRemotes, "BindableEvent", remote.Name, remote)
+					end
 				elseif remote:IsA("RemoteFunction") and not remote:FindFirstAncestor("DefaultChatSystemChatEvents") then
-					CreateRemoteLabel(ScrllForRemotes, "RemoteFunction", remote.Name, remote)
+					if searchRequest ~= nil and string.find(string.lower(remote.Name), string.lower(tostring(searchRequest))) then
+						CreateRemoteLabel(ScrllForRemotes, "RemoteFunction", remote.Name, remote)
+					elseif searchRequest == nil then
+						CreateRemoteLabel(ScrllForRemotes, "RemoteFunction", remote.Name, remote)
+					end
 				end
 			end
 		end
@@ -295,25 +325,31 @@ function DozikLibrary:CreateWindow(boolean)
 		end
 		end)
 		
+		-- MOUSE CLICK FUNCTIONS --
+		SearchRemoteButton.MouseButton1Click:Connect(function()
+			soundClick:Play()
+			FindAllRemotes(SearchRemotesBox.Text)
+			if SearchRemotesBox.Text ~= "" then
+				DozikLibrary.Notify("Searching...", "", 1 + #ScrllForRemotes:GetChildren() / 200)
+			end
+		end)
+		
 		Functions.MouseButton1Click:Connect(function()
 				soundClick:Play()
 				ScrllForInfo.Visible = false
 				ScrllForRemotes.Visible = false
+				SearchRemotesBox.Visible = false
 				ScrllForFunctions.Visible = true
 				task.wait()
 		end)
 		
 		RemotesButton.MouseButton1Click:Connect(function()
 			soundClick:Play()
-			for index, element in pairs(ScrllForRemotes:GetChildren()) do
-				if not element:IsA("UIListLayout") then
-					element:Destroy()
-				end
-			end
 			FindAllRemotes()
 			ScrllForInfo.Visible = false
 			ScrllForFunctions.Visible = false
 			ScrllForRemotes.Visible = true
+			SearchRemotesBox.Visible = true
 			task.wait()
 		end)
 		
@@ -327,11 +363,12 @@ function DozikLibrary:CreateWindow(boolean)
 			CreateAllInfoLabels()
 			ScrllForRemotes.Visible = false
 			ScrllForFunctions.Visible = false
+			SearchRemotesBox.Visible = false
 			ScrllForInfo.Visible = true
 			task.wait()
 		end)
+		-- MOUSE CLICK FUNCTIONS --
 	end
-	
 end
 
 -- ADD BUTTON
@@ -452,19 +489,25 @@ function DozikLibrary:RemotesFrame(Event)
 		for index, field in pairs(inputFields) do
 			if field.Text ~= "" then
 				table.insert(args, field.Text)
+			else
+				DozikLibrary.Notify("The field cannot be empty!", "", 2)
 			end
 		end
 		if Event:IsA("RemoteEvent") then
 			Event:FireServer(unpack(args))
 			DozikLibrary.Notify(Event.Name .. " fired!", "", 2)
+			table.clear(args)
 		elseif Event:IsA("RemoteFunction") then
 			Event:InvokeServer(unpack(args))
 			DozikLibrary.Notify(Event.Name .. " invoked!", "", 2)
+			table.clear(args)
 		elseif Event:IsA("BindableEvent") then
 			Event:Fire(unpack(args))
 			DozikLibrary.Notify(Event.Name .. " fired!", "", 2)
+			table.clear(args)
 		else
 			DozikLibrary.Notify("Error", "This event type was not found", 2)
+			table.clear(args)
 		end
 	end)
 	
