@@ -1,5 +1,5 @@
 local DozikLibrary = {}
-local LocalPlayer = game.Players.LocalPlayer
+local LocalPlayer = game:GetService("Players").LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 
 local TweenService = game:GetService("TweenService")
