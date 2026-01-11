@@ -1,5 +1,5 @@
 local DozikLibrary = {}
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local LocalPlayer = game.Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 
 local TweenService = game:GetService("TweenService")
@@ -329,9 +329,6 @@ function DozikLibrary:CreateWindow(boolean)
 		SearchRemoteButton.MouseButton1Click:Connect(function()
 			soundClick:Play()
 			FindAllRemotes(SearchRemotesBox.Text)
-			if SearchRemotesBox.Text ~= "" then
-				DozikLibrary.Notify("Searching...", "", 1 + #ScrllForRemotes:GetChildren() / 200)
-			end
 		end)
 		
 		Functions.MouseButton1Click:Connect(function()
@@ -395,6 +392,51 @@ function DozikLibrary:AddButton(CheatName, OnClick)
 		TextButton.TextColor = BrickColor.new("White")
 		
 		TextButton.MouseButton1Click:Connect(OnClick)
+	end
+end
+
+function DozikLibrary:AddSwitchButton(CheatName, OnClick)
+	if windowsCreated then
+		local Clicked = false
+		
+		local label = Instance.new("TextLabel", ScrllForFunctions)
+		label.Text = CheatName
+		label.TextScaled  = true
+		label.Size = UDim2.new(0.682, 0,0.15, 0)
+		label.Font = Enum.Font.Highway
+		label.BackgroundTransparency = 0.3
+		label.BackgroundColor = BrickColor.new("White")
+		label.TextColor = BrickColor.new("Really black")
+		label.TextXAlignment = Enum.TextXAlignment.Left
+
+		local TextButton = Instance.new("TextButton", label)
+		TextButton.Text = "Switch"
+		TextButton.TextScaled  = true
+		TextButton.Size = UDim2.new(0.466, 0,0.989, 0)
+		TextButton.Position = UDim2.new(1, 0,0, 0)
+		TextButton.Font = Enum.Font.Highway
+		TextButton.BackgroundTransparency = 0
+		TextButton.BackgroundColor = BrickColor.new("Really black")
+		TextButton.TextColor = BrickColor.new("White")
+
+		TextButton.MouseButton1Click:Connect(function()
+			if Clicked then
+				Clicked = false
+				TextButton.BackgroundColor3 = Color3.new(1,0,0)
+				print("Switch", Clicked)
+			else
+				Clicked = true
+				TextButton.BackgroundColor3 = Color3.new(0,1,0)
+				print("Switch", Clicked)
+				
+			end
+		end)
+		
+		game:GetService("RunService").Stepped:Connect(function()
+			if Clicked then
+				OnClick()
+			end
+		end)
 	end
 end
 
